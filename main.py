@@ -7,15 +7,15 @@ import torch.optim as optim
 import gym
 
 from DDPG import DDPG
-from utils import plotLearning
+from utils.utils import plotLearning
 
 MAX_EPISODES = 100
 MAX_TIMESTEPS = 50
 NUM_UPDATES = 20
 RENDER = True
 TRAIN_VANILLA = False
-TRAIN_HER = False
-TEST = True
+TRAIN_HER = True
+TEST = False
 
 if __name__ == "__main__":
 	if TRAIN_VANILLA:
@@ -25,7 +25,7 @@ if __name__ == "__main__":
 		
 		input_shape = env.observation_space['observation'].shape[0]
 		num_actions = env.action_space.shape[0]
-		agent = DDPG(input_shape, num_actions, env.action_space)
+		agent = DDPG(input_shape, num_actions, env.action_space, HER = False)
 		
 		print(env.reset())
 		
@@ -53,7 +53,7 @@ if __name__ == "__main__":
 				if RENDER:
 					env.render()
 					
-				score_history.append(score)	
+			score_history.append(score)	
 
 			print('episode ', i, 'score %.2f' % score,
 				'trailing 100 games avg %.3f' % np.mean(score_history[-100:]))
@@ -61,7 +61,7 @@ if __name__ == "__main__":
 	
 		env.close()
 	
-		filename = 'FetchPickAndPlace1.png'
+		filename = './output/FetchPickAndPlace1.png'
 		plotLearning(score_history, filename, window=100)
 
 	elif TRAIN_HER:
@@ -87,12 +87,16 @@ if __name__ == "__main__":
 			score = 0
 
 			while not done:
-				action = agent_her.select_action(observation)
+
+				if RENDER:
+					env_her.render()
+
+				action = agent_her.select_action(observation, desired_goal)
 				new_env_dict, reward, done, info = env_her.step(action)
 
 				new_state = new_env_dict['observation']
 				
-				agent_her.save_transition(observation, action, reward, new_state, int(done))
+				agent_her.save_transition(observation, action, reward, new_state, int(done), desired_goal)
 
 				# If we want, we can substitute a goal here and re-compute
 				# the reward. For instance, we can just pretend that the desired
@@ -108,16 +112,14 @@ if __name__ == "__main__":
 					# extra_goals = sample_goals(i, trajectory)
 					# for extra_goal in extra_goals:
 					#     extra_reward = compute_reward(observation, action, extra_goal)
-					agent_her.save_transition(observation, action, substitute_reward, new_state, int(done))
+					agent_her.save_transition(observation, action, substitute_reward, new_state, int(done), substitute_goal)
 						
 
 				agent_her.learn()
 				score += reward
 				observation = new_state
+				desired_goal = new_env_dict['desired_goal']
 
-				if RENDER:
-					env_her.render()
-			
 			
 			score_history_her.append(score)
 
@@ -127,7 +129,7 @@ if __name__ == "__main__":
 
 		env_her.close()
 			
-		filename_her = 'FetchPickAndPlace1HER.png'
+		filename_her = './output/FetchPickAndPlace1HER.png'
 		plotLearning(score_history_her, filename_her, window=100)
 
 		agent_her.save_models()

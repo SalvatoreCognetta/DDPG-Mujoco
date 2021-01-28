@@ -12,3 +12,6 @@ def plotLearning(scores, filename, x=None, window=5):
     plt.xlabel('Game')                     
     plt.plot(x, running_avg)
     plt.savefig(filename)
+    
+# def sample_goals():
+    

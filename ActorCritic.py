@@ -35,6 +35,8 @@ class Actor(nn.Module):
 		# Output Layer - mu
 		self.mu = nn.Linear(hidden_shape[1], num_actions)
 
+		self.init_weight_bias()
+
 		self.optimizer = optim.Adam(self.parameters(), lr)
 		self.to(DEVICE)
 
@@ -96,6 +98,8 @@ class Critic(nn.Module):
 		self.bn2 = nn.LayerNorm(self.hidden_shape[1])
 		# Output layer - Q
 		self.Q = nn.Linear(self.hidden_shape[1], 1)
+
+		self.init_weight_bias()
 
 		self.optimizer = optim.Adam(self.parameters(), lr, weight_decay=l2)
 		self.to(DEVICE)

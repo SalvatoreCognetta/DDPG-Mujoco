@@ -9,21 +9,23 @@ import gym
 from DDPG import DDPG
 from utils.utils import plotLearning
 
-MAX_EPISODES = 100
+MAX_EPISODES = 1000
 MAX_TIMESTEPS = 50
 NUM_UPDATES = 20
 RENDER = True
-TRAIN_VANILLA = False
+TRAIN_VANILLA = True
 TRAIN_HER = True
 TEST = False
 
 if __name__ == "__main__":
 	if TRAIN_VANILLA:
 		# Train vanilla DDPG
-		env = gym.make('FetchPickAndPlace-v1')
+		env = gym.make('MountainCarContinuous-v0')
 		env.reset()
 		
-		input_shape = env.observation_space['observation'].shape[0]
+		# input_shape = env.observation_space['observation'].shape[0]
+		input_shape = env.observation_space.shape[0]
+
 		num_actions = env.action_space.shape[0]
 		agent = DDPG(input_shape, num_actions, env.action_space, HER = False)
 		
@@ -31,10 +33,10 @@ if __name__ == "__main__":
 		
 		score_history = []
 		for i in range(MAX_EPISODES):
-			env_dict = env.reset()
-			observation = env_dict['observation']
-			achieved_goal = env_dict['achieved_goal']
-			desired_goal  = env_dict['desired_goal']
+			observation = env.reset()
+			# observation = env_dict['observation']
+			# achieved_goal = env_dict['achieved_goal']
+			# desired_goal  = env_dict['desired_goal']
 			done = False
 			score = 0
 			
@@ -42,7 +44,7 @@ if __name__ == "__main__":
 				action = agent.select_action(observation)
 				new_env_dict, reward, done, info = env.step(action)
 				
-				new_state = new_env_dict['observation']
+				new_state = new_env_dict #['observation']
 				
 				agent.save_transition(observation, action, reward, new_state, int(done))
 				
@@ -50,7 +52,7 @@ if __name__ == "__main__":
 				score += reward
 				observation = new_state
 				
-				if RENDER:
+				if RENDER and i > 200:
 					env.render()
 					
 			score_history.append(score)	
@@ -75,7 +77,7 @@ if __name__ == "__main__":
 
 		print(env_her.reset())
   
-		print(env_her.observation_space['desired_goal'].low[0])
+		print(env_her.observation_space['desired_goal'])
 	
 		score_history_her = []
 		for i in range(MAX_EPISODES):
@@ -88,7 +90,7 @@ if __name__ == "__main__":
 
 			while not done:
 
-				if RENDER:
+				if RENDER and i > 200:
 					env_her.render()
 
 				action = agent_her.select_action(observation, desired_goal)

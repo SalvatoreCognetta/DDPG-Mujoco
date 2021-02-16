@@ -104,19 +104,19 @@ class DDPG(object):
 
 		# Update the critic by minimizing the loss
 		self.critic.train()
-		self.critic.optimizer.zero_grad() # zero_grad clears old gradients from the last step
 		Q = self.critic(state, action) # Compute Q(s_i,a_i|theta^Q)
 		value_loss = nn.functional.mse_loss(target, Q) # L
+		self.critic.optimizer.zero_grad() # zero_grad clears old gradients from the last step
 		value_loss.backward() # computes the derivative of the loss wrt the parameters using backpropagation
 		self.critic.optimizer.step() # causes the optimizer to take a step based on the gradients of the parameters
 
 		# Update the actor policy using the sampled policy gradient
 		self.critic.eval()
-		self.actor.optimizer.zero_grad()
 		mu = self.actor(state)
 		self.actor.train()
 		policy_loss = -self.critic(state, mu)
 		policy_loss = torch.mean(policy_loss)
+		self.actor.optimizer.zero_grad()
 		policy_loss.backward()
 		self.actor.optimizer.step()
 

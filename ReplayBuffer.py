@@ -13,8 +13,9 @@ class ReplayBuffer(object):
 		self.terminal_mem = np.zeros(self.mem_size, dtype=bool)
 		if is_her:
 			self.goal_mem = np.zeros((self.mem_size, 3), dtype=np.float32)
+			self.achieved_goal_mem = np.zeros((self.mem_size, 3), dtype=np.float32)
 
-	def store_transition(self, state, action, reward, state_, done, goal=None):
+	def store_transition(self, state, action, reward, state_, done, goal=None, achieved_goal=None):
 		index = self.mem_cntr % self.mem_size #first available position
 		
 		self.state_mem[index] = state
@@ -24,6 +25,7 @@ class ReplayBuffer(object):
 		self.terminal_mem[index] = 1 - int(done)
 		if self.is_her:
 			self.goal_mem[index] = goal
+			self.achieved_goal_mem[index] = achieved_goal
 		
 		self.mem_cntr += 1
 
@@ -38,8 +40,9 @@ class ReplayBuffer(object):
 		terminal = self.terminal_mem[batch]
 		if self.is_her:
 			goals = self.goal_mem[batch]
+			achieved_goals = self.achieved_goal_mem[batch]
 
 		if self.is_her:
-			return states, actions, rewards, new_states, terminal, goals
+			return states, actions, rewards, new_states, terminal, goals, achieved_goals
 		else:
 			return states, actions, rewards, new_states, terminal

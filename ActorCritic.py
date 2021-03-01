@@ -124,7 +124,7 @@ class Critic(nn.Module):
 		x = self.bn1(x)
 		x = nn.functional.relu(x)
 
-		x = torch.cat((x, actions), 1)
+		x = torch.cat([x, actions], 1)
 		x = self.fc2(x)
 		x = self.bn2(x)
 		x = nn.functional.relu(x)
